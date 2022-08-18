@@ -1,0 +1,44 @@
+{
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'tests': {
+            'format': '[ %(levelname)7s ] .-= TESTS =-. %(asctime)s %(name)s %(filename)12s:%(lineno)-4d %(message)s'
+        }
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'tests',
+            'level': 'DEBUG'
+        },
+        'exception_handler': {
+            'class': 'logging.FileHandler',
+            'formatter': 'tests',
+            'filename': 'test_exceptions.log',
+            'level': 'ERROR'
+        },
+    },
+    'loggers': {    
+        '': {
+            'handlers': ['console', 'exception_handler'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        '__init__': {
+            'handlers': ['console', 'exception_handler'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'TestSlate': {
+            'handlers': ['console', 'exception_handler'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'test.py': {
+            'handlers': ['console', 'exception_handler'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    }
+}
