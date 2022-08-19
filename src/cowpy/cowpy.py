@@ -1,11 +1,10 @@
 from enum import Enum 
 import logging 
-from logging.config import dictConfig #, DictConfigurator, dictConfigClass
+from logging.config import dictConfig
 import traceback 
 import inspect 
 import sys 
 import os 
-import json
 import ast 
 
 FOREGROUND_COLOR_PREFIX = '\033[38;2;'
@@ -48,25 +47,25 @@ LOG_LEVEL = os.getenv('LOG_LEVEL', LOG_LEVEL_DEFAULT)
 LEVEL_COLORS = { logging._nameToLevel[k]: LEVEL_COLORS[k] for k in LEVEL_COLORS.keys() }
 FORMATTER_BASE = '[ %(levelname)7s ] %(asctime)s %(name)s %(filename)12s:%(lineno)-4d %(message)s'
 
-class SlateLogger(logging.Logger):
+class CowpyLogger(logging.Logger):
     
     # def __init__(self, *args, **kwargs):
-    #     super(SlateLogger, self).__init__(*args, **kwargs)
+    #     super(CowpyLogger, self).__init__(*args, **kwargs)
 
     def _log(self, level, msg, args, exc_info=None, extra=None, stack_info=False, stacklevel=1):
         color_ext = { 'color': LEVEL_COLORS[level].value }
         extra = color_ext if not extra else extra.update(color_ext)
         # print(extra)
         # print([ h.formatter._fmt for h in self.handlers ])
-        super(SlateLogger, self)._log(level, msg, args, exc_info=exc_info, extra=extra, stack_info=stack_info, stacklevel=stacklevel)
+        super(CowpyLogger, self)._log(level, msg, args, exc_info=exc_info, extra=extra, stack_info=stack_info, stacklevel=stacklevel)
     
     def warn(self, msg):
-        super(SlateLogger, self).warning(msg)
+        super(CowpyLogger, self).warning(msg)
     
     def success(self, msg):
-        super(SlateLogger, self).log(level=logging._nameToLevel['SUCCESS'], msg=msg)
+        super(CowpyLogger, self).log(level=logging._nameToLevel['SUCCESS'], msg=msg)
 
-class Slate(object):
+class Cowpy(object):
     
     _intlogger = None 
     logger = None 
@@ -87,10 +86,10 @@ class Slate(object):
         if not self.dictConfigs:
             self.dictConfigs = {}
 
-        fullpath = os.path.realpath('.slaterc')
+        fullpath = os.path.realpath('.cowpyrc')
 
         if path:
-            fullpath = os.path.join(path, '.slaterc')
+            fullpath = os.path.join(path, '.cowpyrc')
         
         if fullpath not in self.dictConfigs:
             if os.path.exists(fullpath):            
@@ -159,37 +158,7 @@ class Slate(object):
         if self.context:
             message = f'[ {self.context} ] {message}'
         return message 
-    
-    # def _wrap(self, call, message, color=None):
-    #     if not self.quiet:
-    #         message = self.wrap_context(message)
-    #         if color:
-    #             call(colorwrapper(message, color))
-    #         else:
-    #             call(message)
-    
-    def text(self, message):
-        if not self.quiet:
-            self.logger.warning(message)
-            
-    # def debug(self, message):
-    #     self._wrap(self.logger.debug, message)
-    
-    # def info(self, message):
-    #     self._wrap(self.logger.info, message)
-    
-    # def warn(self, message):
-    #     self._wrap(self.logger.warning, message)
-
-    # def warning(self, message):
-    #     self._wrap(self.logger.warning, message)
-
-    # def success(self, message):
-    #     self._wrap(self.logger.info, message)
-    
-    # def error(self, message):
-    #     self._wrap(self.logger.error, message)
-
+              
     def exception(self, data=False):
         stack_summary = traceback.extract_tb(sys.exc_info()[2])
         self.logger.error(stack_summary)

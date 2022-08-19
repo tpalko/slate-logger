@@ -1,4 +1,4 @@
-MODULE_NAME = slate
+MODULE_NAME = cowpy
 SHELL=/bin/bash
 CHANGES = $(shell git status -s -- src/$(MODULE_NAME) | wc -l)
 
@@ -34,5 +34,5 @@ install-test:
 	
 clean:
 	rm -rf dist 
-	rm -rf build
 	rm -rf src/*.egg-info
+	find . -type d -name __pycache__ | xargs rm -rvf 

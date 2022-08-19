@@ -1,5 +1,5 @@
-import slate 
+import cowpy 
 
-logger = slate.getLogger()
+logger = cowpy.getLogger()
 
 logger.debug('blank config test')
