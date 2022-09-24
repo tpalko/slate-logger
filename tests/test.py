@@ -23,13 +23,13 @@ class Testcowpy(object):
     def anotherthing(self):
         self.classlogger.info('wait, from a class level logger??')
 
+import testsubfolder.blankconfig.blank
+
 tcs = Testcowpy()
 tcs.doathing()
 tcs.anotherthing()
 
 import testsubfolder.another 
-
-import blankconfig.blank
 
 tcs.doathing()
 tcs.anotherthing()

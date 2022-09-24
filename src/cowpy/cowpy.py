@@ -1,15 +1,41 @@
 from enum import Enum 
 import logging 
+import json
 from logging.config import dictConfig
 import traceback 
 import inspect 
 import sys 
 import os 
-import ast 
+import ast
+from unittest.mock import DEFAULT 
 
 FOREGROUND_COLOR_PREFIX = '\033[38;2;'
 FOREGROUND_COLOR_SUFFIX = 'm'
 FOREGROUND_COLOR_RESET = '\033[0m'
+FORMATTER_BASE = '[ %(levelname)8s ] %(asctime)s %(filename)12s:%(lineno)5d %(name)12s  %(message)s'
+DEFAULT_CONFIG = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'default': {
+            'format': FORMATTER_BASE
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+            'level': 'WARNING'
+        },
+    },
+    'loggers': {    
+        '': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+    }
+}
 
 COLOR_TABLE = {
     'white': '255;255;255',
@@ -42,21 +68,21 @@ LEVEL_COLORS = {
     'CRITICAL': Color.DARKRED
 }
 
-LOG_LEVEL_DEFAULT = 'INFO'
-LOG_LEVEL = os.getenv('LOG_LEVEL', LOG_LEVEL_DEFAULT)
 LEVEL_COLORS = { logging._nameToLevel[k]: LEVEL_COLORS[k] for k in LEVEL_COLORS.keys() }
-FORMATTER_BASE = '[ %(levelname)7s ] %(asctime)s %(name)s %(filename)12s:%(lineno)-4d %(message)s'
 
 class CowpyLogger(logging.Logger):
-    
-    # def __init__(self, *args, **kwargs):
-    #     super(CowpyLogger, self).__init__(*args, **kwargs)
+
+    context = None 
 
     def _log(self, level, msg, args, exc_info=None, extra=None, stack_info=False, stacklevel=1):
-        color_ext = { 'color': LEVEL_COLORS[level].value }
-        extra = color_ext if not extra else extra.update(color_ext)
-        # print(extra)
-        # print([ h.formatter._fmt for h in self.handlers ])
+        ext = { 'color': LEVEL_COLORS[level].value }
+        extra = ext if not extra else extra.update(ext)
+        padded = ''
+        if self.context:
+            padded = self.context[0:8]
+        while len(padded) < 8:
+            padded = f'{padded} '
+        msg = f'[ {padded} ] {msg}'
         super(CowpyLogger, self)._log(level, msg, args, exc_info=exc_info, extra=extra, stack_info=stack_info, stacklevel=stacklevel)
     
     def warn(self, msg):
@@ -65,105 +91,141 @@ class CowpyLogger(logging.Logger):
     def success(self, msg):
         super(CowpyLogger, self).log(level=logging._nameToLevel['SUCCESS'], msg=msg)
 
-class Cowpy(object):
-    
-    _intlogger = None 
-    logger = None 
-    quiet = False 
-    headers = True 
-    log_level = None 
-    context = None 
-    dry_run = False 
-
-    dictConfigs = None 
-    formatter_ids = None 
-    
-    def _getrc(self, path=None, logger=None):
-        
-        if not logger:
-            logger = logging.getLogger()
-
-        if not self.dictConfigs:
-            self.dictConfigs = {}
-
-        fullpath = os.path.realpath('.cowpyrc')
-
-        if path:
-            fullpath = os.path.join(path, '.cowpyrc')
-        
-        if fullpath not in self.dictConfigs:
-            if os.path.exists(fullpath):            
-                logger.info(f'{fullpath} exists. Opening, reading, and evaluating..')
-                with open(fullpath, 'r') as conf:
-                    try:
-                        self.dictConfigs[fullpath] = ast.literal_eval(conf.read())
-                    except:
-                        logger.error(sys.exc_info()[0])
-                        logger.error(sys.exc_info()[1])
-                        traceback.print_tb(sys.exc_info()[2])
-
-        if fullpath in self.dictConfigs:        
-            logger.info(f'Calling dictConfig with {fullpath}')
-            dictConfig(self.dictConfigs[fullpath])
-            self.formatter_ids = []
-        else:
-            logger.warning(f'{fullpath} could not be found, opened, read, or evaluated')
-    
-    def _colorFormatter(self, fmt=FORMATTER_BASE):
-        return logging.Formatter(fmt = f'{FOREGROUND_COLOR_PREFIX}%(color)s{FOREGROUND_COLOR_SUFFIX}{fmt}{FOREGROUND_COLOR_RESET}')
-
-    def getLogger(self, name=None, internal=False):
-
-        callingFrame = inspect.getouterframes(inspect.currentframe())[1]
-        
-        self._getrc(path=os.path.dirname(callingFrame.filename), logger=self._intlogger)
-
-        # print(dir(callingFrame))
-        name = name or callingFrame.function
-        if name == "<module>":
-            name = os.path.basename(callingFrame.filename)
-        
-        new_logger = logging.getLogger(name)
-        if internal:
-            self._intlogger = new_logger
-        
-        self._intlogger.info(f'Got -- {name} -- logger')
-        
-        self._intlogger.info(f'Fixing {len(new_logger.handlers)} handler formatters')
-        for h in new_logger.handlers:
-            self._intlogger.info(f'fixing formatters for handler {h}')
-            if id(h.formatter) not in self.formatter_ids:
-                h.setFormatter(self._colorFormatter(h.formatter._fmt))
-                self.formatter_ids.append(id(h.formatter))
-                self._intlogger.info(f'formatter {id(h.formatter)} processed..')
-            else:
-                self._intlogger.info(f'formatter {id(h.formatter)} already processed..')
-
-        return new_logger
-    
-    def __init__(self, *args, **kwargs):
-
-        self.getLogger(__name__, internal=True)
-        self._intlogger.info(f'Slate internal logging configured as {__name__}')
-
     def clear_context(self):
         self.context = None 
         
     def set_context(self, context):
         self.context = context 
+  
+
+class Cowpy(object):
     
-    def wrap_context(self, message):
-        if self.dry_run:
-            message = f'[ DRY RUN ] {message}'
-        if self.context:
-            message = f'[ {self.context} ] {message}'
-        return message 
-              
-    def exception(self, data=False):
-        stack_summary = traceback.extract_tb(sys.exc_info()[2])
-        self.logger.error(stack_summary)
-        if logging._nameToLevel[self.log_level.upper()] <= logging.ERROR:
-            self.logger.error(sys.exc_info()[0])
-            self.logger.error(sys.exc_info()[1])
-            for line in stack_summary.format():
-                self.logger.error(line)
+    _intlogger = None 
+    
+    dictConfigs = None 
+    formatter_ids = None 
+    
+    context_enabled = False 
+    
+    def __init__(self, *args, **kwargs):
+
+        self.getLogger(__name__, internal=True)
+        self._intlogger.info(f'Cowpy internal logging configured as {__name__}')
+
+        for k in kwargs:
+            try:
+                self.__getattribute__(k)
+                self.__setattr__(k, kwargs[k])
+            except:
+                self._intlogger.error(f'Cowpy has no {k}')
+
+
+    def _getrc(self, rcpath, logger=None):
+        
+        if not logger:
+            # -- the only time we get here is on the very first self.getLogger call in Cowpy init
+            logger = logging.getLogger()
+        else:
+            logger.set_context('rc fetch')
+
+        if not self.dictConfigs:
+            self.dictConfigs = {}
+
+        orig_rc_path = rcpath 
+
+        # -- follow parent folders all the way up, searching desperately for configuration
+        while not os.path.exists(os.path.join(rcpath, '.cowpyrc')):
+            if rcpath == '/':
+                break 
+            rcpath = os.path.realpath(os.path.join(rcpath, os.pardir))
+
+        final_rc_path = os.path.join(rcpath, '.cowpyrc')
+
+        rcFileContents = DEFAULT_CONFIG
+
+        if os.path.exists(final_rc_path):
+            if final_rc_path not in self.dictConfigs:            
+                logger.info(f'{final_rc_path} exists. Opening, reading, and evaluating..')
+                with open(final_rc_path, 'r') as conf:
+                    try:
+                        self.dictConfigs[final_rc_path] = ast.literal_eval(conf.read())
+                    except:
+                        logger.error(sys.exc_info()[0])
+                        logger.error(sys.exc_info()[1])
+                        traceback.print_tb(sys.exc_info()[2])
+            
+            rcFileContents = self.dictConfigs[final_rc_path]
+            
+        else:
+            logger.warning(f'.cowpyrc at {orig_rc_path} could not be found, opened, read, or evaluated')
+            logger.warning(f'Calling dictConfig with default config')            
+        
+        return rcFileContents
+                        
+    def _colorFormatter(self, fmt=FORMATTER_BASE):
+        return logging.Formatter(fmt = f'{FOREGROUND_COLOR_PREFIX}%(color)s{FOREGROUND_COLOR_SUFFIX}{fmt}{FOREGROUND_COLOR_RESET}')
+
+    def _handler(self):
+        newH = logging.StreamHandler()        
+        newH.setFormatter(self._colorFormatter())
+        return newH 
+
+    def self_logger(self):
+        return self._intlogger or logging.getLogger(__name__)
+
+    def fixLoggerFormatters(self, logger_name):
+        logger = logging.getLogger(logger_name)
+        self._intlogger.info(f'Fixing {len(logger.handlers)} handler formatters')
+        if len(logger.handlers) > 0:
+            self._intlogger.debug(f'Our new logger has handlers..')
+            self._intlogger.debug(logger.handlers)
+            for h in logger.handlers:
+                self._intlogger.info(f'fixing formatters for handler {h}')
+                if h.formatter:
+                    if id(h.formatter) not in self.formatter_ids:
+                        newF = self._colorFormatter(h.formatter._fmt)
+                        self.formatter_ids.append(id(h.formatter))
+                        self._intlogger.info(f'formatter {id(h.formatter)} processed..')
+                        h.setFormatter(newF)
+                    else:
+                        self._intlogger.info(f'formatter {id(h.formatter)} already processed..')
+                else:
+                    newF = self._colorFormatter()
+                    h.setFormatter(newF)
+        else:
+            self._intlogger.warning(f'No handlers on this new logger, so adding a default')
+            logger.addHandler(self._handler())      
+
+    def getLogger(self, name=None, internal=False):
+
+        callingFrame = inspect.getouterframes(inspect.currentframe())[1]
+        
+        rcFileContents = self._getrc(rcpath=os.path.dirname(callingFrame.filename), logger=self._intlogger)
+        
+        if self._intlogger:
+            self._intlogger.info(f'Calling dictConfig with')
+            self._intlogger.info(json.dumps(rcFileContents, indent=4))
+        dictConfig(rcFileContents)
+        # -- applying a configuration invalidates any ids that might have been in memory
+        self.formatter_ids = []
+
+        if self._intlogger:
+            self._intlogger.clear_context() 
+
+        # print(dir(callingFrame))
+        name = name or callingFrame.function
+        if name == "<module>":
+            name =  os.path.splitext(os.path.basename(callingFrame.filename))[0]
+        
+        new_logger = logging.getLogger(name)
+
+        if internal:
+            self._intlogger = new_logger
+            self._intlogger.info(f'Got {name} logger as the internal cowpy logger')
+        
+        for logger_name in [ n for n in rcFileContents['loggers'].keys() if n != name ]:
+            _ = self.fixLoggerFormatters(logger_name)
+
+        self.fixLoggerFormatters(name)
+
+        return new_logger

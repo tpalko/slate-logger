@@ -1,20 +1,13 @@
 {
     'version': 1,
     'disable_existing_loggers': False,
-    'formatters': {
-        'internal': {
-            'format': '[ %(levelname)7s ] .-=iNTERNAL=-. %(asctime)s %(name)s %(filename)12s:%(lineno)-4d %(message)s'
-        },
-    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'internal',
             'level': 'DEBUG'
         },
         'exception_handler': {
             'class': 'logging.FileHandler',
-            'formatter': 'internal',
             'filename': 'cowpy_exceptions.log',
             'level': 'ERROR'
         },
@@ -27,7 +20,7 @@
         },
         'cowpy.cowpy': {
             'handlers': ['console', 'exception_handler'],
-            'level': 'WARNING',
+            'level': 'DEBUG',
             'propagate': False,
         }
     }

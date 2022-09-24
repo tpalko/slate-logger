@@ -1,9 +1,16 @@
-MODULE_NAME = cowpy
+PACKAGE_NAME = cowpy
 SHELL=/bin/bash
-CHANGES = $(shell git status -s -- src/$(MODULE_NAME) | wc -l)
+CHANGES = $(shell git status -s -- src/$(PACKAGE_NAME) | wc -l)
+PYTHONINT = $(shell which python3)
+WORKON_HOME=~/.virtualenv
+VENV_WRAPPER=/usr/share/virtualenvwrapper/virtualenvwrapper.sh
+
+venv:	
+	@. $(VENV_WRAPPER) && (workon $(PACKAGE_NAME) 2>/dev/null || mkvirtualenv -p $(PYTHONINT) $(PACKAGE_NAME))	
+	@pip install --extra-index-url https://test.pypi.org/simple -t $(WORKON_HOME)/$(PACKAGE_NAME)/lib/python3.9/site-packages -r requirements.txt 
 
 test:
-	@echo "write tests"
+	@cd tests && python test.py
 
 version:
 ifeq ($(CHANGES), 0)
@@ -30,7 +37,7 @@ release-test: build
 release-test-dry: build-dry
 
 install-test:
-	pip install -i https://test.pypi.org/simple/ $(MODULE_NAME)
+	pip install -i https://test.pypi.org/simple/ $(PACKAGE_NAME)
 	
 clean:
 	rm -rf dist 

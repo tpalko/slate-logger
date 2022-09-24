@@ -1,20 +1,13 @@
 {
     'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'subfolder': {
-            'format': '[ %(levelname)7s ] .-= SUBFoLDER =-. %(asctime)s %(filename)12s:%(lineno)-4d %(message)s'
-        },
-    },
+    'disable_existing_loggers': False,    
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'subfolder',
             'level': 'DEBUG'
         },
         'exception_handler': {
             'class': 'logging.FileHandler',
-            'formatter': 'subfolder',
             'filename': 'test_exceptions.log',
             'level': 'ERROR'
         },
@@ -30,10 +23,21 @@
             'level': 'DEBUG',
             'propagate': False,
         },
+        'blank.py': {
+            'handlers': ['console', 'exception_handler'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
         'testsubfolder.another': {
             'handlers': ['console', 'exception_handler'],
             'level': 'DEBUG',
             'propagate': False,
         },
+        'functionlog_declared_outside': {
+            'handlers': ['console', 'exception_handler'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        
     }
 }
