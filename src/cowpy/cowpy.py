@@ -74,7 +74,11 @@ class CowpyLogger(logging.Logger):
 
     context = None 
 
+    # -- overriding base 
     def _log(self, level, msg, args, exc_info=None, extra=None, stack_info=False, stacklevel=1):
+        if level not in LEVEL_COLORS:
+            raise NotImplementedError(f'There is no {level} in LEVEL_COLORS. Go ahead and check it.')
+
         ext = { 'color': LEVEL_COLORS[level].value }
         extra = ext if not extra else extra.update(ext)
         padded = ''
