@@ -13,11 +13,6 @@
         },
     },
     'loggers': {    
-        '': {
-            'handlers': ['console', 'exception_handler'],
-            'level': 'WARNING',
-            'propagate': False,
-        },
         'cowpy.cowpy': {
             'handlers': ['console', 'exception_handler'],
             'level': 'DEBUG',
