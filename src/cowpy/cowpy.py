@@ -255,7 +255,8 @@ class Cowpy(object):
             other_loggers = [ n for n in rcFileContents['loggers'].keys() if n != name ]
             self._intlogger.info(f'Fixing logger formatters for {len(other_loggers)} configured loggers..')
             for logger_name in other_loggers:
-                _ = self.fixLoggerFormatters(logger_name)
+                if logger_name != '':
+                    _ = self.fixLoggerFormatters(logger_name)
         
         self.fixLoggerFormatters(name)
 
