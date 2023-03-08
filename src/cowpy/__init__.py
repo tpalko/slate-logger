@@ -10,3 +10,4 @@ cs = Cowpy()
 # print('--------  Finished Instantiating Cowpy   ------------')
 
 getLogger = cs.getLogger
+StreamHandler = logging.StreamHandler
