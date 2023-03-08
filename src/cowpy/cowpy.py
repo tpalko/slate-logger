@@ -104,6 +104,18 @@ class CowpyLogger(logging.Logger):
         
     def set_context(self, context):
         self.context = context 
+    
+    def exception(self):
+        stack_summary = traceback.extract_tb(sys.exc_info()[2])
+        self.error("".join(stack_summary.format()))
+        # self.error("\n".join([ f'{s.filename} line {s.line}' for s in stack_summary ]))
+        # for line in stack_summary.format():
+        #     self.error(line)
+        # if logging._nameToLevel[self.log_level.upper()] <= logging.ERROR:
+        #     self.error(sys.exc_info()[0])
+        #     self.error(sys.exc_info()[1])
+        #     for line in stack_summary.format():
+        #         self.error(line)
   
 
 class Cowpy(object):
@@ -220,7 +232,8 @@ class Cowpy(object):
     def getLogger(self, name=None, internal=False):
 
         if not internal:
-            print('------------------- Creating your logger -------------------')
+            pass 
+            # print('------------------- Creating your logger -------------------')
 
         callingFrame = inspect.getouterframes(inspect.currentframe())[1]
         
@@ -233,6 +246,7 @@ class Cowpy(object):
                 
             dictConfig(rcFileContents)
             # -- applying a configuration invalidates any ids that might have been in memory
+            # -- so we dump our tracking of those IDs
             self.formatter_ids = []
             self._fixed_logger_names = []
 
@@ -253,14 +267,16 @@ class Cowpy(object):
         
         if rcFileContents:
             other_loggers = [ n for n in rcFileContents['loggers'].keys() if n != name ]
-            self._intlogger.info(f'Fixing logger formatters for {len(other_loggers)} configured loggers..')
+            self._intlogger.info(f'Fixing logger formatters for {len(other_loggers)} configured loggers (other than {name})..')
             for logger_name in other_loggers:
+                # -- ignore the root logger, this is a bad time 
                 if logger_name != '':
                     _ = self.fixLoggerFormatters(logger_name)
         
         self.fixLoggerFormatters(name)
 
         if not internal:
-            print('-------------- Finished Creating your logger ---------------')
+            pass
+            # print('-------------- Finished Creating your logger ---------------')
 
         return new_logger

@@ -15,7 +15,7 @@
     'loggers': {    
         'cowpy.cowpy': {
             'handlers': ['console', 'exception_handler'],
-            'level': 'DEBUG',
+            'level': 'WARN',
             'propagate': False,
         }
     }
