@@ -1,6 +1,6 @@
 [project]
 name = "cowpy"
-version = "0.0.1"
+version = "0.0.0"
 authors = [
   { name="Tim Palko", email="tim@palkosoftware.com" },
 ]
