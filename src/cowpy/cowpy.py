@@ -224,7 +224,7 @@ class Cowpy(object):
                     newF = self._colorFormatter()
                     h.setFormatter(newF)
         else:
-            self._intlogger.warning(f'No handlers on this new logger, so adding a default')
+            self._intlogger.info(f'No handlers on this new logger, so adding a default')
             logger.addHandler(self._handler())      
         
         self._fixed_logger_names.append(logger_name)
