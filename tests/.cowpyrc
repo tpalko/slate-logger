@@ -5,31 +5,26 @@
         'console': {
             'class': 'logging.StreamHandler',
             'level': 'DEBUG'
-        },
-        'exception_handler': {
-            'class': 'logging.FileHandler',
-            'filename': 'test_exceptions.log',
-            'level': 'ERROR'
-        },
+        }
     },
     'loggers': {    
         '': {
-            'handlers': ['console', 'exception_handler'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
         },
         '__init__': {
-            'handlers': ['console', 'exception_handler'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'TestSlate': {
-            'handlers': ['console', 'exception_handler'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'test.py': {
-            'handlers': ['console', 'exception_handler'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
         },

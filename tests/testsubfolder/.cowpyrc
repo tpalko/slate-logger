@@ -5,36 +5,26 @@
         'console': {
             'class': 'logging.StreamHandler',
             'level': 'DEBUG'
-        },
-        'exception_handler': {
-            'class': 'logging.FileHandler',
-            'filename': 'test_exceptions.log',
-            'level': 'ERROR'
-        },
+        }
     },
     'loggers': {  
-        '': {
-            'handlers': ['console', 'exception_handler'],
-            'level': 'DEBUG',
-            'propagate': False,
-        },  
         'another.py': {
-            'handlers': ['console', 'exception_handler'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'blank.py': {
-            'handlers': ['console', 'exception_handler'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'testsubfolder.another': {
-            'handlers': ['console', 'exception_handler'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'functionlog_declared_outside': {
-            'handlers': ['console', 'exception_handler'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
         },
