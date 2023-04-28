@@ -5,17 +5,12 @@
         'console': {
             'class': 'logging.StreamHandler',
             'level': 'DEBUG'
-        },
-        'exception_handler': {
-            'class': 'logging.FileHandler',
-            'filename': 'cowpy_exceptions.log',
-            'level': 'ERROR'
-        },
+        }
     },
     'loggers': {    
         'cowpy.cowpy': {
-            'handlers': ['console', 'exception_handler'],
-            'level': 'WARN',
+            'handlers': ['console'],
+            'level': 'INFO',
             'propagate': False,
         }
     }

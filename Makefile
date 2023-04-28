@@ -14,7 +14,8 @@ venv:
 	@pip install --extra-index-url https://test.pypi.org/simple -t $(WORKON_HOME)/$(PACKAGE_NAME)/lib/python3.9/site-packages -r requirements.txt 
 
 test:
-	@cd tests && python test.py
+	@cd tests && $(PYTHONINT) test.py
+	@find tests -name "__pycache__" -type d | xargs rm -vrf
 
 build-deps:
 	@$(PYTHONINT) -m pip install --upgrade pip build twine 
@@ -24,7 +25,9 @@ ifeq ($(CHANGES), 0)
 ifeq ($(INVENV), 0)
 ifeq ($(HEAD_TAGGED), 0)
 	@echo "Versioning ($(CHANGES) changes)"
-	sed -i "s/^version = .*/version = \"$(shell standard-version --dry-run | grep "tagging release" | awk '{ print $$4 }')\"/" pyproject.toml
+	sed -i \
+		"s/^version = .*/version = \"$(shell standard-version --dry-run | grep "tagging release" | awk '{ print $$4 }')\"/" \
+		pyproject.toml
 	git diff -- pyproject.toml
 	git add pyproject.toml
 	standard-version -a	
@@ -62,10 +65,14 @@ release-test-dry: build-dry
 install-test:
 	pip install -i https://test.pypi.org/simple/ $(PACKAGE_NAME)
 
+install-link:
+	ln -svf $(PWD)/src/cowpy ~/.local/lib/python3.9/site-packages/
+
 release: build 
 	python3 -m twine upload --repository pypi dist/*
 	
 clean:
+	rm -rf build 
 	rm -rf dist 
 	rm -rf src/*.egg-info
 	find . -type d -name __pycache__ | xargs rm -rvf 
