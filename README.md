@@ -1,13 +1,15 @@
-## patches 
+## What does Cowpy do?
 
-### local StreamHandler
+Cowpy is a drop-in replacement for Python's `logging` with the additional benefits of:
 
-diff --git a/src/cowpy/__init__.py b/src/cowpy/__init__.py
-index 97f847f..180a3c9 100644
---- a/src/cowpy/__init__.py
-+++ b/src/cowpy/__init__.py
-@@ -10,3 +10,4 @@ cs = Cowpy()
- # print('--------  Finished Instantiating Cowpy   ------------')
- 
- getLogger = cs.getLogger
-+StreamHandler = logging.StreamHandler
+- colorized logging
+- easy setting of context/state
+- intelligent auto-naming of loggers
+- external, hierarchical logging configuration
+
+
+### development 
+
+* should we wrap the static loggers.. keep a handle on each logger requested and actually use the instance of Cowpy as the logging object in calling code?
+
+
