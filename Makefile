@@ -8,6 +8,7 @@ VENV_WRAPPER := /usr/share/virtualenvwrapper/virtualenvwrapper.sh
 LATEST_VERSION := $(shell git tag | grep -E "^v[[:digit:]]+.[[:digit:]]+.[[:digit:]]+$$" | sort -n | tail -n 1)
 HEAD_VERSION_TAG := $(shell git tag --contains | head -n 1 | grep -E "^v[[:digit:]]+.[[:digit:]]+.[[:digit:]]+$$")
 HEAD_TAGGED := $(if $(HEAD_VERSION_TAG),1,0)
+BRANCH := $(shell git branch --show-current)
 
 venv:	
 	@. $(VENV_WRAPPER) && (workon $(PACKAGE_NAME) 2>/dev/null || mkvirtualenv -p $(PYTHONINT) $(PACKAGE_NAME))	
@@ -21,10 +22,12 @@ build-deps:
 	@$(PYTHONINT) -m pip install --upgrade pip build twine 
 
 version:
+ifeq ($(BRANCH), main)
 ifeq ($(CHANGES), 0)
 ifeq ($(INVENV), 0)
 ifeq ($(HEAD_TAGGED), 0)
-	@echo "Versioning ($(CHANGES) changes)"
+	@echo "Versioning (DRY_RUN=$(DRY_RUN))"
+ifneq ($(DRY_RUN), 1)
 	sed -i \
 		"s/^version = .*/version = \"$(shell standard-version --dry-run | grep "tagging release" | awk '{ print $$4 }')\"/" \
 		pyproject.toml
@@ -32,47 +35,76 @@ ifeq ($(HEAD_TAGGED), 0)
 	git add pyproject.toml
 	standard-version -a	
 else 
-	@echo "No versioning today (commit already tagged $(HEAD_VERSION_TAG))"
+	@echo ""
+	@echo "_---- D R Y  R U N ----_"
+	@echo ""
+	grep -i version pyproject.toml 
+	standard-version -a	--dry-run 
+endif 
+else 
+	@echo "No versioning today (commit already tagged $(HEAD_VERSION_TAG))"	
 endif 
 else 
 	@echo "No versioning today (in virtual env $(VIRTUAL_ENV))"
+	exit 1
 endif
 else
-	@echo "No versioning today ($(CHANGES) changes)"
+	@echo "No versioning today ($(CHANGES) changes). Stash or commit your changes."
+	exit 1
 endif
-
-version-dry:
-ifeq ($(CHANGES), 0)
-	standard-version --dry-run
-else
-	@echo "No versioning today ($(CHANGES) changes)"
-endif
-
-build: build-deps version
-ifeq ($(INVENV), 0)
-	python3 -m build
 else 
-	@echo "No building today (in virtualenv $(VIRTUAL_ENV))"
+	@echo "Will not version outside main"
+	exit 1
 endif 
 
-build-dry: version-dry
+.PHONY: build 
 
-release-test: build 
+ifeq ($(INVENV), 0)
+ifeq ($(HEAD_TAGGED), 1)
+build: build-deps
+	python3 -m build
+else 
+build:
+	@echo "Will not build unversioned"
+	exit 1
+endif 
+else 
+build:
+	@echo "Cannot build while in virtualenv (in virtualenv $(VIRTUAL_ENV))"
+	exit 1	
+endif 
+
+publish-test: build 
+ifneq ($(DRY_RUN), 1)
 	python3 -m twine upload --repository testpypi dist/*
+else 
+	python3 -m twine check --repository testpypi dist/*
+endif 
 
-release-test-dry: build-dry
+publish: build 
+ifneq ($(DRY_RUN), 1)
+	python3 -m twine upload dist/*
+else 
+	python3 -m twine check dist/*
+endif 
 
 install-test:
 	pip install -i https://test.pypi.org/simple/ $(PACKAGE_NAME)
 
-install-link:
-	ln -svf $(PWD)/src/cowpy ~/.local/lib/python3.9/site-packages/
+install:
+ifeq ($(HEAD_TAGGED), 1)
+	pip install .
+else 
+	@echo "Will not install unversioned"
+	exit 1
+endif 
 
-release: build 
-	python3 -m twine upload --repository pypi dist/*
-	
+uninstall:
+	pip uninstall $(PACKAGE_NAME)
+
 clean:
 	rm -rf build 
 	rm -rf dist 
 	rm -rf src/*.egg-info
 	find . -type d -name __pycache__ | xargs rm -rvf 
+	find . -type f -name *.pyc | xargs rm -vf 
