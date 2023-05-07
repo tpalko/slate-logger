@@ -307,7 +307,7 @@ class Cowpy(object):
         
         self._fixed_logger_names.append(logger_name)
 
-    def getLogger(self, name=None):
+    def getLogger(self, name=None, config=None):
         
         self._log_internal('debug', f'Someone is asking for a logger ({name})!')
         callingFrame = inspect.getouterframes(inspect.currentframe())[1]
@@ -330,7 +330,7 @@ class Cowpy(object):
 
         self._log_internal('debug', f'vvvvvvvvvvvvvvvvvvv getting logger: {name} vvvvvvvvvvvvvvvvvvvvvvvvvv')
 
-        rc_path = self._getrc_path(calling_filename=callingFrame.filename)
+        rc_path = config or self._getrc_path(calling_filename=callingFrame.filename)
         
         rcFileContents = None 
 
