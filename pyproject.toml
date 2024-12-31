@@ -7,12 +7,14 @@ authors = [
 description = "Actually simplifying the process of logging in python, with color"
 readme = "README.md"
 license = { file="LICENSE" }
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+
+dependencies = ['build', 'twine']
 
 [project.urls]
 "Homepage" = "https://github.com/tpalko/cowpy"
@@ -21,3 +23,15 @@ classifiers = [
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.flit.sdist]
+include = ["src/cowpy/.cowpyrc"]
+
+[tool.setuptools]
+include-package-data = true 
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+cowpy = [".cowpyrc"]

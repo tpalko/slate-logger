@@ -1,17 +1,21 @@
-{
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'level': 'DEBUG'
+{   
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": "DEBUG",
+            "format": "Format.DETAILED"
+        },
+        "exceptions": {
+            "class": "logging.FileHandler",
+            "filename": "cowpy_exceptions.log",
+            "level": "DEBUG",
+            "format": "Format.DETAILED"
         }
     },
-    'loggers': {    
-        'cowpy.cowpy': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        }
+    "loggers": {    
+        "__cowpy__": {
+            "handlers": ["console", "exceptions"],
+            "level": "DEBUG"
+        }        
     }
 }

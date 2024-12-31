@@ -5,13 +5,13 @@ INVENV := $(if $(VIRTUAL_ENV),1,0)
 PYTHONINT := $(shell which python3)
 WORKON_HOME := ~/.virtualenv
 VENV_WRAPPER := /usr/share/virtualenvwrapper/virtualenvwrapper.sh
-LATEST_VERSION := $(shell git tag | grep -E "^v[[:digit:]]+.[[:digit:]]+.[[:digit:]]+$$" | sort -n | tail -n 1)
+#LATEST_VERSION := $(shell git tag | grep -E "^v[[:digit:]]+.[[:digit:]]+.[[:digit:]]+$$" | sort -n | tail -n 1)
 HEAD_VERSION_TAG := $(shell git tag --contains | head -n 1 | grep -E "^v[[:digit:]]+.[[:digit:]]+.[[:digit:]]+$$")
 HEAD_TAGGED := $(if $(HEAD_VERSION_TAG),1,0)
 BRANCH := $(shell git branch --show-current)
 
 venv:	
-	@. $(VENV_WRAPPER) && (workon $(PACKAGE_NAME) 2>/dev/null || mkvirtualenv -p $(PYTHONINT) $(PACKAGE_NAME))	
+	@. $(VENV_WRAPPER) && (workon $(PACKAGE_NAME) 2>/dev/null || mkvirtualenv -a . -p $(PYTHONINT) $(PACKAGE_NAME))	
 	@pip install --extra-index-url https://test.pypi.org/simple -t $(WORKON_HOME)/$(PACKAGE_NAME)/lib/python3.9/site-packages -r requirements.txt 
 
 test:
@@ -97,7 +97,7 @@ ifeq ($(HEAD_TAGGED), 1)
 else 
 	@echo "Will not install unversioned"
 	exit 1
-endif 
+endif
 
 uninstall:
 	pip uninstall $(PACKAGE_NAME)
