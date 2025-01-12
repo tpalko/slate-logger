@@ -1,12 +1,7 @@
-
-
-# logging.basicConfig(level=logging.DEBUG)
-
-# logging.addLevelName(25, 'SUCCESS')
-
-from .cowpy import Cowpy, Format
-from .logger import CowpyLogger #, CowpyConfigurator
-# logging.setLoggerClass(CowpyLogger)
+import logging
+from cowpy.cowpy import Cowpy, Format
+from cowpy.logger import CowpyLogger #, CowpyConfigurator
+#from .plugins.gunicorn import CowpyGunicorn
 
 # logging.config.dictConfigClass = CowpyConfigurator
 
@@ -19,11 +14,7 @@ FORMAT_STANDARD = Format.STANDARD
 FORMAT_USER = Format.USER
 
 getLogger = cs.getLogger
-# autoLogger = cs.autoLogger
-# autoConfig = cs.checkAndApplyFromPath
-
-import logging 
 
 StreamHandler = logging.StreamHandler
 
-#from .plugins.gunicorn import CowpyGunicorn
+
